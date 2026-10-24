@@ -10,8 +10,19 @@ internal static class RestrictedFeaturePolicy
 
     internal static bool IsRestricted => Assess().IsRestricted;
 
+    internal static bool EnableRegionRestriction => ReadChinaFlag();
+
+    private static bool ReadChinaFlag()
+    {
+        var raw = Environment.GetEnvironmentVariable("CHINA")?.Trim();
+        // 只有显式 false / 0 才放行，其余一律启用限制
+        return !(raw == "0" || (bool.TryParse(raw, out var b) && !b));
+    }
+    
     internal static bool Check(string feature, bool showHint = true)
     {
+        if (!EnableRegionRestriction) return true;
+        
         var assessment = Assess();
         if (!assessment.IsRestricted) return true;
 
